@@ -1,0 +1,65 @@
+{% block body %}
+<link href="{{ asset('styles/formulaire.css') }}" rel="stylesheet"/>
+<script src="{{ asset('js/form.js') }}"></script>
+
+<!-- Formulaire pour ajouter une tâche -->
+<div class="fond-modale" id="modaleTache">
+  <div class="contenu-modale">
+    <div class="en-tete">
+      <h5 class="titre-modale">Ajouter une tâche</h5>
+      <button type="button" class="bouton-fermer">&times;</button>
+    </div>
+
+
+<!-- Corps de la boîte de dialogue -->
+      <div class="contenu-principal">
+        {{ form_start(addTaskForm, { 'attr': { 'id': 'formTache', 'action': path('add-task', { 'project_id': project_id }) } }) }}
+          <div class="champ-groupe">
+            <label for="description">Description</label>
+            {{ form_widget(addTaskForm.description, { 'attr': { 'class': 'champ-input', 'maxlength': 200 } }) }}
+          </div>
+          
+          <div class="champ-groupe">
+            <label for="date_debut_tache">Date de début</label>
+            {{ form_widget(addTaskForm.date_debut_tache, { 'attr': { 'class': 'champ-input' } }) }}
+          </div>
+          
+          <div class="champ-groupe">
+            <label for="date_fin_tache">Date de fin</label>
+            {{ form_widget(addTaskForm.date_fin_tache, { 'attr': { 'class': 'champ-input' } }) }}
+          </div>
+        {{ form_end(addTaskForm) }}
+      </div>
+
+      <div class="pied-modale">
+        <button type="button" class="bouton-fermer" id="fermerModalePied">Fermer</button>
+        <button type="submit" form="formTache" class="bouton-nouveau">Créer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="{{ asset('js/form.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const ouvrirModale = document.getElementById('ouvrirModale');
+      const fermerModale = document.getElementById('fermerModale');
+      const fermerModalePied = document.getElementById('fermerModalePied');
+      const modaleTache = document.getElementById('modaleTache');
+
+      ouvrirModale?.addEventListener('click', () => {
+          modaleTache.style.display = 'block';
+      });
+
+      fermerModale?.addEventListener('click', () => {
+          modaleTache.style.display = 'none';
+      });
+
+      fermerModalePied?.addEventListener('click', () => {
+          modaleTache.style.display = 'none';
+      });
+  });
+</script>
+{% endblock %}
