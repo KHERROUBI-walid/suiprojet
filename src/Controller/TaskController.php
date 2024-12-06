@@ -42,7 +42,6 @@ class TaskController extends AbstractController
             'addTaskForm' => $form->createView(),
             'is_manager' => true,
             'target_task' => null,
-            'lien_clique' => false,
         ]);
     }
 

@@ -13,11 +13,14 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class ProjectsController extends AbstractController
 {
     #[Route('/projects', name: 'app_projects', methods: ['GET'])]
-    public function userProjects(
+    public function displayProjects(
         ProjectRepository $projectRepository,
         TaskRepository $taskRepository,
         EntityManagerInterface $entityManager
@@ -60,10 +63,8 @@ class ProjectsController extends AbstractController
             throw $this->createAccessDeniedException('Accès réservé aux gestionnaires.');
         }
 
-        // Récupérer les projets liés au gestionnaire
         $projects = $projectRepository->findByManager($user->getId());
 
-        // Mise à jour des statuts des projets
         foreach ($projects as $project) {
             $this->updateProjectStatus($project, $taskRepository, $entityManager);
         }
@@ -123,4 +124,32 @@ class ProjectsController extends AbstractController
         $entityManager->persist($project);
         $entityManager->flush();
     }
+
+#[IsGranted('ROLE_MANAGER')]
+#[Route('/projects/manager/delete/{project_id}', name: 'project_delete', methods: ['POST'])]
+    public function delete(
+        int $project_id, 
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        CsrfTokenManagerInterface $csrfTokenManager
+    ): Response {
+        // Vérification du token CSRF
+        $token = $request->request->get('_token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete_project_' . $project_id, $token))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $project = $entityManager->getRepository(Project::class)->find($project_id);
+        if (!$project) {
+            throw $this->createNotFoundException('Le projet n’existe pas.');
+        }
+
+        $entityManager->remove($project);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Projet supprimé avec succès.');
+
+        return $this->redirectToRoute('app_projects_manager');
+    }
 }
+
